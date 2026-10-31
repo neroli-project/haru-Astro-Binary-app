@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四柱推命×西洋占星術 ハイブリッド未来予測エンジン</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Astronomy Engine CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Shippori+Mincho:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Shippori Mincho', 'Inter', serif;
+            background-color: #090d16;
+            color: #e2e8f0;
+        }
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #fef08a 0%, #d97706 50%, #fef08a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gold-border {
+            border-color: rgba(217, 119, 6, 0.3);
+        }
+        .gold-border-glow {
+            box-shadow: 0 0 15px rgba(217, 119, 6, 0.15);
+        }
+        .cosmic-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(217, 119, 6, 0.25);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-slate-950 via-purple-950 to-indigo-950 min-h-screen text-slate-200 p-4 md:p-8">
+
+    <!-- カスタムモーダル（alert代替） -->
+    <div id="customModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 transition-opacity">
+        <div class="cosmic-card rounded-2xl p-6 max-w-sm w-full mx-4 border gold-border shadow-2xl text-center">
+            <div class="text-amber-400 text-3xl mb-2">✦</div>
+            <h3 id="modalTitle" class="text-lg font-bold text-amber-200 font-cinzel mb-2">Notice</h3>
+            <p id="modalMessage" class="text-sm text-slate-300 mb-6 leading-relaxed"></p>
+            <button onclick="closeModal()" class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-bold px-4 py-2.5 rounded-lg text-sm transition shadow-lg">閉じる</button>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto cosmic-card rounded-3xl shadow-2xl overflow-hidden border gold-border relative">
+        <!-- 背景の装飾星空演出 -->
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/10 via-transparent to-transparent pointer-events-none"></div>
+
+        <!-- ヘッダー -->
+        <div class="relative p-6 md:p-10 border-b gold-border text-center bg-slate-950/40">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-cinzel mb-3 tracking-widest">
+                <span>✦ HYBRID ASTROLOGY ENGINE ✦</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold gold-gradient-text tracking-wider mb-2">東洋・西洋 統合天命演算</h1>
+            <p class="text-slate-400 text-xs md:text-sm max-w-2xl mx-auto leading-relaxed">
+                四柱推命の「日干・通変星・空亡」のエネルギー潮流と、天体力学に基づく高精度な「トランジット・アスペクト」をハイブリッド解析し、真の好機と転換期を導き出します。
+            </p>
+        </div>
+
+        <!-- 入力コントロールパネル -->
+        <div class="p-6 md:p-8 bg-slate-900/60 border-b gold-border grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+            <div>
+                <label class="block text-xs font-semibold text-amber-200/80 mb-2 uppercase tracking-wider">生年月日（ネイタル算出）</label>
+                <input type="date" id="birthDateInput" value="1995-03-15" class="w-full rounded-xl bg-slate-950/80 border border-amber-500/30 p-3 text-sm text-slate-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-amber-200/80 mb-2 uppercase tracking-wider">出生時間</label>
+                <div class="flex items-center gap-2">
+                    <input type="time" id="birthTimeInput" value="12:00" class="flex-1 rounded-xl bg-slate-950/80 border border-amber-500/30 p-3 text-sm text-slate-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition">
+                    <label class="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-950/60 px-3 py-3 rounded-xl border border-amber-500/20 cursor-pointer select-none">
+                        <input type="checkbox" id="unknownTimeCheck" onchange="toggleTimeInput()" class="rounded text-amber-500 focus:ring-0 bg-slate-900 border-amber-500/40">
+                        <span>時間不明</span>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-amber-200/80 mb-2 uppercase tracking-wider">予測対象年（トランジット年）</label>
+                <div class="flex gap-3">
+                    <input type="number" id="targetYearInput" value="2026" min="1900" max="2100" class="w-full rounded-xl bg-slate-950/80 border border-amber-500/30 p-3 text-sm text-slate-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition">
+                    <button onclick="runAnalysis()" class="whitespace-nowrap bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-slate-950 font-bold px-6 py-3 rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2 font-cinzel">
+                        <span>ANALYZE</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ネイタル天体度数手動調整（アコーディオン） -->
+        <div class="border-b gold-border bg-slate-950/40">
+            <details class="group">
+                <summary class="flex justify-between items-center p-4 cursor-pointer text-xs font-semibold text-amber-300/80 hover:text-amber-200 transition">
+                    <span>✦ ネイタル天体・計算度数の確認・微調整 (手動オーバードライブ)</span>
+                    <span class="group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div class="p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 bg-slate-900/40 text-xs">
+                    <div>
+                        <label class="block text-slate-400 mb-1">☉ 太陽 黄経(度)</label>
+                        <input type="number" step="0.01" id="natalSunDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-2 text-amber-200 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">☽ 月 黄経(度)</label>
+                        <input type="number" step="0.01" id="natalMoonDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-2 text-amber-200 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">☿ 水星 黄経(度)</label>
+                        <input type="number" step="0.01" id="natalMercuryDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-2 text-amber-200 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">♀ 金星 黄経(度)</label>
+                        <input type="number" step="0.01" id="natalVenusDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-2 text-amber-200 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">♂ 火星 黄経(度)</label>
+                        <input type="number" step="0.01" id="natalMarsDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-2 text-amber-200 font-mono">
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <!-- 解析結果サマリー -->
+        <div id="summarySection" class="p-6 md:p-8 bg-slate-950/60 border-b gold-border grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Dynamic Content -->
+        </div>
+
+        <!-- タイムライン表示エリア -->
+        <div class="p-6 md:p-10">
+            <div class="flex items-center justify-between mb-8 border-b gold-border pb-4">
+                <div class="flex items-center gap-3">
+                    <span class="text-amber-400 text-xl">✦</span>
+                    <h3 class="text-lg font-bold text-amber-100 tracking-wider">計算に基づくリアル・アスペクトタイムライン</h3>
+                </div>
+                <span class="text-xs font-cinzel bg-amber-500/10 border border-amber-500/30 text-amber-300 px-3 py-1 rounded-full" id="eventCountBadge">0 EVENTS</span>
+            </div>
+            <div id="timelineOutput" class="space-y-6">
+                <!-- 動的描画 -->
+            </div>
+        </div>
+    </div>
+
+<script>
+/* ==========================================================
+   天文・占星術計算ライブラリ & ユーティリティ
+   ================================================---------- */
+const ZODIAC_SIGNS = [
+    { name: "白羊座", symbol: "♈", start: 0 },
+    { name: "金牛座", symbol: "♉", start: 30 },
+    { name: "双子座", symbol: "♊", start: 60 },
+    { name: "蟹座", symbol: "♋", start: 90 },
+    { name: "獅子座", symbol: "♌", start: 120 },
+    { name: "乙女座", symbol: "♍", start: 150 },
+    { name: "天秤座", symbol: "♎", start: 180 },
+    { name: "天蠍座", symbol: "♏", start: 210 },
+    { name: "人馬座", symbol: "♐", start: 240 },
+    { name: "磨羯座", symbol: "♑", start: 270 },
+    { name: "宝瓶座", symbol: "♒", start: 300 },
+    { name: "双魚座", symbol: "♓", start: 330 }
+];
+
+// 黄経角度(0-360)を「双魚座20.12°」の形式に変換
+function formatZodiacDegree(deg) {
+    deg = safeMod(deg, 360);
+    const signIdx = Math.floor(deg / 30);
+    const signDeg = deg % 30;
+    const degInt = Math.floor(signDeg);
+    const minInt = Math.floor((signDeg - degInt) * 60);
+    const sign = ZODIAC_SIGNS[signIdx];
+    return `${sign.symbol} ${sign.name}${degInt}°${minInt < 10 ? '0' : ''}${minInt}' (${deg.toFixed(2)}°)`;
+}
+
+function safeMod(n, m) { return ((n % m) + m) % m; }
+
+function showModal(title, message) {
+    document.getElementById('modalTitle').innerText = title;
+    document.getElementById('modalMessage').innerText = message;
+    document.getElementById('customModal').classList.remove('hidden');
+    document.getElementById('customModal').classList.add('flex');
+}
+
+function closeModal() {
+    document.getElementById('customModal').classList.add('hidden');
+    document.getElementById('customModal').classList.remove('flex');
+}
+
+function toggleTimeInput() {
+    const isUnknown = document.getElementById('unknownTimeCheck').checked;
+    const timeInput = document.getElementById('birthTimeInput');
+    timeInput.disabled = isUnknown;
+    timeInput.classList.toggle('opacity-40', isUnknown);
+}
+
+/* ==========================================================
+   Astronomy Engine による高精度黄経（Ecliptic Longitude）算出
+   ================================================---------- */
+function getBodyLongitude(bodyName, dateObj) {
+    try {
+        if (typeof Astronomy !== 'undefined' && Astronomy.Ecliptic) {
+            const time = Astronomy.MakeTime(dateObj);
+            // 地球中心黄経（GeoVector → Ecliptic）
+            const vec = Astronomy.GeoVector(bodyName, time, true);
+            const ecl = Astronomy.Ecliptic(vec);
+            return safeMod(ecl.elon, 360);
+        }
+    } catch(e) {
+        console.error("Astronomy error:", bodyName, e);
+    }
+    return 0;
+}
+
+/* ==========================================================
+   四柱推命 演算ロジック & 通変星詳細辞書
+   ================================================---------- */
+const JUKKAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+const JUNICHI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+
+const TSUCHENSEI_DETAILS = {
+    "比肩": {
+        keyword: "自立・自己確立・マイペース・決断",
+        desc: "自分自身の意志が強まり、独立心や個性が前面に出る時期です。自分の軸をしっかり持ち、新しい一歩を踏み出すのに最適です。"
+    },
+    "劫財": {
+        keyword: "協業・野心・仲間・スケールの大きな目標",
+        desc: "仲間と共に大きな目標に向かって突き進む野心溢れる時期です。時にライバル意識も芽生えますが、コラボレーションで力を発揮します。"
+    },
+    "食神": {
+        keyword: "自己表現・衣食住の充実・娯楽・自然体",
+        desc: "感性が豊かになり、生活を楽しんだり自身の才能を素直に表現できる幸運期です。リラックスした自然体の魅力が周囲を引きつけます。"
+    },
+    "傷官": {
+        keyword: "直感・美意識・専門技能・革新・デリケートな転換期",
+        desc: "感受性と集中力が研ぎ澄まされる時期です。専門技術の磨き上げやアート・表現活動に抜群の威力を発揮しますが、言葉の鋭さや精神的なデリケートさには注意が必要です。"
+    },
+    "偏財": {
+        keyword: "流動的な財・ビジネス拡大・人脈・サービス精神",
+        desc: "人脈やチャンスが大きく広がるアクティブな好運期です。投資やビジネスの拡大など、エネルギーを循環させることで豊かな成果が得られます。"
+    },
+    "正財": {
+        keyword: "着実な蓄財・信用・不動産・誠実な成果",
+        desc: "コツコツ積み重ねてきた努力が形になる安定・定着の時期です。計画的な資金運用や、信頼関係の構築に最も向いています。"
+    },
+    "偏官": {
+        keyword: "行動・変化・ブレイクスルー・多忙・勇気",
+        desc: "疾風怒濤の勢いで環境が激変したり、チャレンジが求められる時期です。強いプレッシャーを突破口として、一気に成長できます。"
+    },
+    "正官": {
+        keyword: "責任・昇進・社会的評価・枠組みの確立",
+        desc: "社会的な役割や責任が大きくなり、周囲からの信頼や評価が高まる時期です。規律を守り、組織や社会の中で確固たる立場を築けます。"
+    },
+    "偏印": {
+        keyword: "知的好奇心・探究・自由・異業種・環境の変化",
+        desc: "これまでの常識にとらわれない柔軟なインスピレーションが湧く時期です。新しい学びや旅行、未知の分野への挑戦に最適です。"
+    },
+    "印綬": {
+        keyword: "学習・資格・名誉・精神的成長・引き立て",
+        desc: "知識の吸収力や研究運が高まる時期です。目上の人からの支援を受けやすく、資格取得や本格的な学問・スキルの修得に恵まれます。"
+    }
+};
+
+/* 流年干支（十干・十二支）それぞれのエネルギー解説辞書 */
+const GANSHI_DETAILS = {
+    "甲": "大樹の如く力強く真っ直ぐ伸びる開拓のエネルギー",
+    "乙": "草花の如く柔軟にしなやかに環境に適応するエネルギー",
+    "丙": "太陽の如く明るく周囲を照らし情熱を波及させるエネルギー",
+    "丁": "灯火の如く静かに情熱を燃やし専門性を極めるエネルギー",
+    "戊": "山岳の如く圧倒的な存在感と包容力で惹きつけるエネルギー",
+    "己": "田園の如く豊かな養分を蓄え育てる育成のエネルギー",
+    "庚": "鉱石・剣の如く鋭い決断力と変革をもたらすエネルギー",
+    "辛": "宝石の如く洗練された美意識と繊細な価値を生むエネルギー",
+    "壬": "大海の如く大きな流動性と自由な知性を広げるエネルギー",
+    "癸": "雨露の如く静かに浸透し潤いと知恵を与えるエネルギー",
+    "子": "物事が始まり種子が芽吹く準備の時期",
+    "丑": "耐え忍び着実に実りを蓄える準備の時期",
+    "寅": "新芽が勢いよく芽吹き始める起動の時期",
+    "卯": "芽が成長し飛躍・展開する発展の時期",
+    "辰": "活力に満ち溢れ大きく振興する飛翔の時期",
+    "巳": "情熱がピークに達し万物が結実に向かう時期",
+    "午": "陽気が極まり転換点へと向かう頂点の時期",
+    "未": "実りが成熟し穏やかに整う定着の時期",
+    "申": "果実が固まり収穫・変革へと動く時期",
+    "酉": "成果が結実し本質が洗練される完成の時期",
+    "戌": "収穫を終え防衛・再編成を進める引き締めの時期",
+    "亥": "次のサイクルに向けてエネルギーを蓄積する充電の時期"
+};
+
+const TSUCHENSEI_MATRIX = {
+    "甲": { "甲": "比肩", "乙": "劫財", "丙": "食神", "丁": "傷官", "戊": "偏財", "己": "正財", "庚": "偏官", "辛": "正官", "壬": "偏印", "癸": "印綬" },
+    "乙": { "甲": "劫財", "乙": "比肩", "丙": "傷官", "丁": "食神", "戊": "正財", "己": "偏財", "庚": "正官", "辛": "偏官", "壬": "印綬", "癸": "偏印" },
+    "丙": { "甲": "偏印", "乙": "印綬", "丙": "比肩", "丁": "劫財", "戊": "食神", "己": "傷官", "庚": "偏財", "辛": "正財", "壬": "偏官", "癸": "正官" },
+    "丁": { "甲": "印綬", "乙": "偏印", "丙": "劫財", "丁": "比肩", "戊": "傷官", "己": "食神", "庚": "正財", "辛": "偏財", "壬": "正官", "癸": "偏官" },
+    "戊": { "甲": "偏官", "乙": "正官", "丙": "偏印", "丁": "印綬", "戊": "比肩", "己": "劫財", "庚": "食神", "辛": "傷官", "壬": "偏財", "癸": "正財" },
+    "己": { "甲": "正官", "乙": "偏官", "丙": "印綬", "丁": "偏印", "戊": "劫財", "己": "比肩", "庚": "傷官", "辛": "食神", "壬": "正財", "癸": "偏財" },
+    "庚": { "甲": "偏財", "乙": "正財", "丙": "偏官", "丁": "正官", "戊": "偏印", "己": "印綬", "庚": "比肩", "辛": "劫財", "壬": "食神", "癸": "傷官" },
+    "辛": { "甲": "正財", "乙": "偏財", "丙": "正官", "丁": "偏官", "戊": "印綬", "己": "偏印", "庚": "劫財", "辛": "比肩", "壬": "傷官", "癸": "食神" },
+    "壬": { "甲": "食神", "乙": "傷官", "丙": "偏財", "丁": "正財", "戊": "偏官", "己": "正官", "庚": "印綬", "辛": "偏印", "壬": "比肩", "癸": "劫財" },
+    "癸": { "甲": "傷官", "乙": "食神", "丙": "正財", "丁": "偏財", "戊": "正官", "己": "偏官", "庚": "偏印", "辛": "印綬", "壬": "劫財", "癸": "比肩" }
+};
+
+function getYearGanShi(targetYear) {
+    const offsetYear = targetYear - 4;
+    const ganIdx = safeMod(offsetYear, 10);
+    const nishiIdx = safeMod(offsetYear, 12);
+    return { gan: JUKKAN[ganIdx], nishi: JUNICHI[nishiIdx], name: JUKKAN[ganIdx] + JUNICHI[nishiIdx] };
+}
+
+// 修正：ユリウス日（JD）に基づく厳密な日干支算出ロジック
+function calculateDayPillar(dateObj) {
+    const year = dateObj.getFullYear();
+    const month = dateObj.getMonth() + 1;
+    const day = dateObj.getDate();
+    const hour = dateObj.getHours();
+
+    // 23時以降は翌日の日付（子刻の入り）として扱う四柱推命の標準処理
+    let calcYear = year;
+    let calcMonth = month;
+    let calcDay = day;
+
+    if (hour >= 23) {
+        const nextDay = new Date(dateObj.getTime() + 24 * 60 * 60 * 1000);
+        calcYear = nextDay.getFullYear();
+        calcMonth = nextDay.getMonth() + 1;
+        calcDay = nextDay.getDate();
+    }
+
+    if (calcMonth <= 2) {
+        calcYear -= 1;
+        calcMonth += 12;
+    }
+
+    const A = Math.floor(calcYear / 100);
+    const B = 2 - A + Math.floor(A / 4);
+    const JD = Math.floor(365.25 * (calcYear + 4716)) + Math.floor(30.6001 * (calcMonth + 1)) + calcDay + B - 1524.5;
+
+    // ユリウス日 JD=0 は「癸丑(10, 2)」に相当するため、干支オフセットを適用
+    const ganIdx = safeMod(Math.floor(JD + 0.5) + 9, 10);
+    const nishiIdx = safeMod(Math.floor(JD + 0.5) + 1, 12);
+
+    return {
+        gan: JUKKAN[ganIdx],
+        nishi: JUNICHI[nishiIdx],
+        name: JUKKAN[ganIdx] + JUNICHI[nishiIdx]
+    };
+}
+
+function checkKuhou(dayGan, dayNishi, targetYearNishi) {
+    const ganIdx = JUKKAN.indexOf(dayGan);
+    const nishiIdx = JUNICHI.indexOf(dayNishi);
+    const xunHeadNishiIdx = safeMod(nishiIdx - ganIdx, 12);
+    const kuhou1 = JUNICHI[safeMod(xunHeadNishiIdx + 10, 12)];
+    const kuhou2 = JUNICHI[safeMod(xunHeadNishiIdx + 11, 12)];
+    return { isKuhouYear: (targetYearNishi === kuhou1 || targetYearNishi === kuhou2), kuhouList: [kuhou1, kuhou2] };
+}
+
+/* ==========================================================
+   アスペクト判定・定義
+   ================================================---------- */
+const ASPECTS_DEF = [
+    { name: "Conjunction", symbol: "☌", angle: 0, orb: 8, ja: "コンジャンクション (0°/合)", type: "neutral" },
+    { name: "Sextile", symbol: "⚹", angle: 60, orb: 6, ja: "セクスタイル (60°/協力・調和)", type: "harmonious" },
+    { name: "Square", symbol: "□", angle: 90, orb: 7, ja: "スクエア (90°/葛藤・刺激)", type: "challenging" },
+    { name: "Trine", symbol: "△", angle: 120, orb: 8, ja: "トライン (120°/大調和・追い風)", type: "harmonious" },
+    { name: "Opposition", symbol: "☍", angle: 180, orb: 8, ja: "オポジション (180°/対立・緊張)", type: "challenging" }
+];
+
+const PLANET_NAMES_JA = {
+    "Sun": "太陽", "Moon": "月", "Mercury": "水星", "Venus": "金星", "Mars": "火星",
+    "Jupiter": "木星", "Saturn": "土星", "Uranus": "天王星", "Neptune": "海王星", "Pluto": "冥王星"
+};
+
+/* ==========================================================
+   分析メイン処理
+   ================================================---------- */
+let calculatedNatalDegrees = {};
+
+function runAnalysis() {
+    const dateVal = document.getElementById('birthDateInput').value;
+    const isUnknownTime = document.getElementById('unknownTimeCheck').checked;
+    const timeVal = isUnknownTime ? '12:00' : (document.getElementById('birthTimeInput').value || '12:00');
+    const targetYearVal = parseInt(document.getElementById('targetYearInput').value, 10);
+
+    if (!dateVal) {
+        showModal("入力エラー", "生年月日を入力してください。");
+        return;
+    }
+
+    const birthDate = new Date(`${dateVal}T${timeVal}:00`);
+
+    // 1. ネイタル天体度の計算（初回または基準値設定）
+    if (!document.getElementById('natalSunDeg').value || window.lastBirthDate !== dateVal) {
+        calculatedNatalDegrees = {
+            "Sun": getBodyLongitude("Sun", birthDate),
+            "Moon": getBodyLongitude("Moon", birthDate),
+            "Mercury": getBodyLongitude("Mercury", birthDate),
+            "Venus": getBodyLongitude("Venus", birthDate),
+            "Mars": getBodyLongitude("Mars", birthDate)
+        };
+
+        document.getElementById('natalSunDeg').value = calculatedNatalDegrees["Sun"].toFixed(2);
+        document.getElementById('natalMoonDeg').value = calculatedNatalDegrees["Moon"].toFixed(2);
+        document.getElementById('natalMercuryDeg').value = calculatedNatalDegrees["Mercury"].toFixed(2);
+        document.getElementById('natalVenusDeg').value = calculatedNatalDegrees["Venus"].toFixed(2);
+        document.getElementById('natalMarsDeg').value = calculatedNatalDegrees["Mars"].toFixed(2);
+        window.lastBirthDate = dateVal;
+    } else {
+        // ユーザーが手動入力した度数を反映
+        calculatedNatalDegrees = {
+            "Sun": parseFloat(document.getElementById('natalSunDeg').value) || 0,
+            "Moon": parseFloat(document.getElementById('natalMoonDeg').value) || 0,
+            "Mercury": parseFloat(document.getElementById('natalMercuryDeg').value) || 0,
+            "Venus": parseFloat(document.getElementById('natalVenusDeg').value) || 0,
+            "Mars": parseFloat(document.getElementById('natalMarsDeg').value) || 0
+        };
+    }
+
+    // 2. 四柱推命ステータス計算
+    const dayPillar = calculateDayPillar(birthDate);
+    const yearGanShi = getYearGanShi(targetYearVal);
+    const nikkanMap = TSUCHENSEI_MATRIX[dayPillar.gan] || {};
+    const currentTheme = nikkanMap[yearGanShi.gan] || "比肩";
+    const kuhouInfo = checkKuhou(dayPillar.gan, dayPillar.nishi, yearGanShi.nishi);
+
+    // 3. 対象年のトランジット天体リアル演算 (月ごとサンプリングして精度高く検出)
+    const transitPlanets = ["Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
+    const natalPlanets = ["Sun", "Moon", "Mercury", "Venus", "Mars"];
+    const detectedAspects = [];
+
+    // 指定年の各月15日の天体位置を取得し、アスペクトを精密判定
+    for (let month = 0; month < 12; month++) {
+        const checkDate = new Date(Date.UTC(targetYearVal, month, 15, 12, 0, 0));
+        const dateStr = `${targetYearVal}-${String(month + 1).padStart(2, '0')}-15`;
+
+        transitPlanets.forEach(tPlanet => {
+            const tDeg = getBodyLongitude(tPlanet, checkDate);
+
+            natalPlanets.forEach(nPlanet => {
+                const nDeg = calculatedNatalDegrees[nPlanet];
+                let diff = Math.abs(tDeg - nDeg);
+                if (diff > 180) diff = 360 - diff;
+
+                ASPECTS_DEF.forEach(asp => {
+                    const orb = Math.abs(diff - asp.angle);
+                    if (orb <= asp.orb) {
+                        detectedAspects.push({
+                            date: dateStr,
+                            tPlanet,
+                            tDeg,
+                            nPlanet,
+                            nDeg,
+                            aspect: asp,
+                            orb: orb.toFixed(2),
+                            diff: diff.toFixed(2)
+                        });
+                    }
+                });
+            });
+        });
+    }
+
+    // 重複除去（最もオーブが近い月を抽出）
+    const uniqueAspects = [];
+    const aspectKeys = new Set();
+    detectedAspects.sort((a, b) => parseFloat(a.orb) - parseFloat(b.orb));
+
+    detectedAspects.forEach(item => {
+        const key = `${item.tPlanet}-${item.nPlanet}-${item.aspect.name}`;
+        if (!aspectKeys.has(key)) {
+            aspectKeys.add(key);
+            uniqueAspects.push(item);
+        }
+    });
+
+    // スコアリング（オーブの近さと通変星の調和度）
+    uniqueAspects.forEach(item => {
+        let score = (10 - parseFloat(item.orb)) * 1.5;
+        if (kuhouInfo.isKuhouYear) score *= 0.85;
+        item.score = score;
+    });
+    uniqueAspects.sort((a, b) => b.score - a.score);
+
+    // 4. UI 描画
+    renderSummary(resultSummary = {
+        nikkan: dayPillar.gan,
+        dayPillar: dayPillar.name,
+        targetYear: targetYearVal,
+        currentTheme,
+        yearGanShi: yearGanShi.name,
+        isKuhou: kuhouInfo.isKuhouYear,
+        kuhouBranches: kuhouInfo.kuhouList.join('・')
+    });
+
+    renderTimeline(uniqueAspects, currentTheme, kuhouInfo.isKuhouYear);
+}
+
+function renderSummary(s) {
+    const ganDesc = GANSHI_DETAILS[s.yearGanShi[0]] || "";
+    const nishiDesc = GANSHI_DETAILS[s.yearGanShi[1]] || "";
+
+    const div = document.getElementById('summarySection');
+    div.innerHTML = `
+        <div class="cosmic-card p-4 rounded-2xl gold-border">
+            <span class="text-xs text-amber-300/70 block font-medium">日干（宿命の本質）</span>
+            <span class="text-2xl font-bold gold-gradient-text">${s.nikkan} <span class="text-xs text-slate-300">(${s.dayPillar})</span></span>
+        </div>
+        <div class="cosmic-card p-4 rounded-2xl gold-border">
+            <span class="text-xs text-amber-300/70 block font-medium">${s.targetYear}年 東洋年運テーマ</span>
+            <span class="text-2xl font-bold text-amber-200">${s.currentTheme}</span>
+        </div>
+        <div class="cosmic-card p-4 rounded-2xl gold-border">
+            <span class="text-xs text-amber-300/70 block font-medium">流年干支（${s.targetYear}年）</span>
+            <span class="text-2xl font-bold text-slate-200">${s.yearGanShi}</span>
+            <span class="text-[10px] text-amber-300/80 block mt-1 leading-tight">${ganDesc}</span>
+        </div>
+        <div class="cosmic-card p-4 rounded-2xl gold-border">
+            <span class="text-xs text-amber-300/70 block font-medium">空亡（天悪運気）</span>
+            <span class="text-lg font-bold ${s.isKuhou ? 'text-amber-500' : 'text-emerald-400'}">
+                ${s.isKuhou ? '⚠️ 空亡期 (' + s.kuhouBranches + ')' : '✨ 正常展開'}
+            </span>
+        </div>
+    `;
+}
+
+function renderTimeline(aspects, currentTheme, isKuhou) {
+    const timelineDiv = document.getElementById('timelineOutput');
+    document.getElementById('eventCountBadge').innerText = `${aspects.length} REAL EVENTS`;
+
+    if (aspects.length === 0) {
+        timelineDiv.innerHTML = `<div class="text-center py-12 text-slate-500 text-sm">指定の年に顕著なメジャーアスペクト（オーブ許容内）は見つかりませんでした。</div>`;
+        return;
+    }
+
+    const tsInfo = TSUCHENSEI_DETAILS[currentTheme] || { keyword: "調整", desc: "全体的な運気の調和を図る時期です。" };
+    const targetYearVal = parseInt(document.getElementById('targetYearInput').value, 10);
+    const yearGanShi = getYearGanShi(targetYearVal);
+    const ganEnergy = GANSHI_DETAILS[yearGanShi.gan] || "";
+    const nishiPhase = GANSHI_DETAILS[yearGanShi.nishi] || "";
+
+    let html = '';
+    aspects.forEach(item => {
+        const tName = PLANET_NAMES_JA[item.tPlanet] || item.tPlanet;
+        const nName = PLANET_NAMES_JA[item.nPlanet] || item.nPlanet;
+
+        // アスペクトの性質（調和/緊張）に応じた表現の切り替え
+        let aspectEffectText = "";
+        if (item.aspect.type === "harmonious") {
+            aspectEffectText = `<b class="text-emerald-300">【西洋アスペクトの追い風】</b>${tName}と${nName}の${item.aspect.ja}という滑らかな後押しにより、流年干支（${yearGanShi.name}）のエネルギーと「${currentTheme}」のテーマがストレスなくスムーズに展開し、嬉しいチャンスや成果として芽咲きます。`;
+        } else if (item.aspect.type === "challenging") {
+            aspectEffectText = `<b class="text-rose-300">【西洋アスペクトの突破口・課題】</b>${tName}と${nName}の${item.aspect.ja}という刺激的な配置が、現状の脱却や見直しを促します。流年干支（${yearGanShi.name}）の背景のもと、「${currentTheme}」にまつわる現実的なプレッシャーや葛藤を乗り越えることで、大きなブレイクスルーを果たせます。`;
+        } else {
+            aspectEffectText = `<b class="text-indigo-200">【西洋アスペクトの集中・結実】</b>${tName}と${nName}の${item.aspect.ja}により、特定のテーマにエネルギーが一点集中します。流年干支（${yearGanShi.name}）の流れと「${currentTheme}」のテーマが、強力なトリガーとなって人生の節目を浮き彫りにします。`;
+        }
+
+        html += `
+            <div class="cosmic-card p-6 rounded-2xl gold-border hover:gold-border-glow transition relative overflow-hidden">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-3 border-b border-amber-500/10 pb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-cinzel px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">SCORE: ${item.score.toFixed(1)}</span>
+                        <span class="font-bold text-amber-100 font-cinzel text-sm">✦ ${item.date} 前後</span>
+                    </div>
+                    <div class="text-xs font-mono text-amber-300/90 bg-slate-950/80 px-3 py-1.5 rounded-lg border border-amber-500/20">
+                        t.${tName} × n.${nName} <span class="text-amber-400 font-bold">${item.aspect.symbol} ${item.aspect.ja}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-300 mb-4 bg-slate-950/40 p-3 rounded-xl border border-slate-800">
+                    <div>
+                        <span class="text-slate-500 block">トランジット:</span>
+                        <span class="text-slate-200 font-mono">${tName}: ${formatZodiacDegree(item.tDeg)}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">ネイタル:</span>
+                        <span class="text-slate-200 font-mono">${nName}: ${formatZodiacDegree(item.nDeg)}</span>
+                    </div>
+                    <div class="col-span-2 text-amber-300/80 font-mono">
+                        オーブ（誤差）: ${item.orb}° <span class="text-slate-500">(離隔角: ${item.diff}°)</span>
+                    </div>
+                </div>
+
+                <div class="text-xs bg-gradient-to-r from-amber-950/40 to-purple-950/40 p-4 rounded-xl border border-amber-500/20 text-amber-100/90 leading-relaxed space-y-2.5">
+                    <div class="flex items-center justify-between border-b border-amber-500/20 pb-1.5">
+                        <div class="flex items-center gap-2 font-bold text-amber-300">
+                            <span>✦ 3位一体 統合解釈</span>
+                            <span class="bg-amber-500/20 text-amber-200 px-2 py-0.5 rounded text-[10px] border border-amber-500/30">東洋テーマ：${currentTheme} (${tsInfo.keyword})</span>
+                        </div>
+                        <span class="text-[10px] text-amber-400/80 font-mono">流年干支: ${yearGanShi.name}</span>
+                    </div>
+
+                    <p class="text-slate-300"><b class="text-amber-300">【流年干支の土台 (${yearGanShi.name})】</b>${yearGanShi.gan}の「${ganEnergy}」と、${yearGanShi.nishi}の「${nishiPhase}」が今年1年の背後に流れる基本背景です。</p>
+
+                    <p class="text-slate-200"><b class="text-amber-200/90">【年運通変星 (${currentTheme})】</b>${tsInfo.desc}</p>
+
+                    <p class="text-slate-300">${aspectEffectText}</p>
+
+                    ${isKuhou ? '<p class="text-amber-400 text-[11px] pt-1">⚠️ <b>空亡補正:</b> 今年は空亡（リセット・内省の年）にあたるため、外側に急いで結果を求めるより、技術の研鑽や知識の蓄積など「内側の充実」に充てると大きな開運に繋がります。</p>' : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    timelineDiv.innerHTML = html;
+}
+
+window.onload = function() {
+    runAnalysis();
+};
+</script>
