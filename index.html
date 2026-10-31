@@ -164,6 +164,8 @@ const ZODIAC_SIGNS = [
     { name: "双魚座", symbol: "♓", start: 330 }
 ];
 
+function safeMod(n, m) { return ((n % m) + m) % m; }
+
 // 黄経角度(0-360)を「双魚座20.12°」の形式に変換
 function formatZodiacDegree(deg) {
     deg = safeMod(deg, 360);
@@ -174,8 +176,6 @@ function formatZodiacDegree(deg) {
     const sign = ZODIAC_SIGNS[signIdx];
     return `${sign.symbol} ${sign.name}${degInt}°${minInt < 10 ? '0' : ''}${minInt}' (${deg.toFixed(2)}°)`;
 }
-
-function safeMod(n, m) { return ((n % m) + m) % m; }
 
 function showModal(title, message) {
     document.getElementById('modalTitle').innerText = title;
@@ -196,14 +196,11 @@ function toggleTimeInput() {
     timeInput.classList.toggle('opacity-40', isUnknown);
 }
 
-/* ==========================================================
-   Astronomy Engine による高精度黄経（Ecliptic Longitude）算出
-   ================================================---------- */
+/* Astronomy Engine による高精度黄経（Ecliptic Longitude）算出 */
 function getBodyLongitude(bodyName, dateObj) {
     try {
         if (typeof Astronomy !== 'undefined' && Astronomy.Ecliptic) {
             const time = Astronomy.MakeTime(dateObj);
-            // 地球中心黄経（GeoVector → Ecliptic）
             const vec = Astronomy.GeoVector(bodyName, time, true);
             const ecl = Astronomy.Ecliptic(vec);
             return safeMod(ecl.elon, 360);
@@ -220,46 +217,96 @@ function getBodyLongitude(bodyName, dateObj) {
 const JUKKAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
 const JUNICHI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
 
+/* 十干（甲〜癸）の初心者向け詳細辞書 */
+const JUKKAN_EXPLAIN = {
+    "甲": { nature: "大木・樹木", keyword: "成長・真っ直ぐな信念", symbol: "陽の木" },
+    "乙": { nature: "草花・蔓草", keyword: "柔軟性・協調性", symbol: "陰の木" },
+    "丙": { nature: "太陽・大火", keyword: "情熱・陽気・周囲を明るく照らすエネルギー", symbol: "陽の火" },
+    "丁": { nature: "灯火・月光", keyword: "洞察力・温もり・専門性の追求", symbol: "陰の火" },
+    "戊": { nature: "山岳・大地", keyword: "包容力・安定感・揺るぎない信頼", symbol: "陽の土" },
+    "己": { nature: "田園・田畑", keyword: "育成・多才・現実的な積み重ね", symbol: "陰の土" },
+    "庚": { nature: "剣・刀剣・鉱石", keyword: "決断力・改革・鋭い突破力", symbol: "陽の金" },
+    "辛": { nature: "宝石・砂金", keyword: "繊細・美意識・高い美学とこだわり", symbol: "陰の金" },
+    "壬": { nature: "大海・大河", keyword: "自由・包容力・流動的な知性", symbol: "陽の水" },
+    "癸": { nature: "雨露・湧水", keyword: "思いやり・浸透力・静かな忍耐", symbol: "陰の水" }
+};
+
+/* 十二支（子〜亥）の初心者向け詳細辞書 */
+const JUNICHI_EXPLAIN = {
+    "子": { season: "真冬 (12月)", keyword: "新たな命の芽生え・準備", symbol: "水" },
+    "丑": { season: "晩冬 (1月)", keyword: "春を待つ蓄え・粘り強さ", symbol: "土" },
+    "寅": { season: "初春 (2月)", keyword: "芽吹き・始動・上昇志向", symbol: "木" },
+    "卯": { season: "春本番 (3月)", keyword: "繁栄・飛躍・愛嬌", symbol: "木" },
+    "辰": { season: "晩春 (4月)", keyword: "変容・活力・スケール感", symbol: "土" },
+    "巳": { season: "初夏 (5月)", keyword: "情熱・探求・結実への上昇", symbol: "火" },
+    "午": { season: "夏本番 (6月)", keyword: "陽気が極まる頂点・大きな転換点", symbol: "火" },
+    "未": { season: "晩夏 (7月)", keyword: "熟成・穏やかさ・定着", symbol: "土" },
+    "申": { season: "初秋 (8月)", keyword: "実り・行動力・器用さ", symbol: "金" },
+    "酉": { season: "秋本番 (9月)", keyword: "洗練・収穫・本質の磨き上げ", symbol: "金" },
+    "戌": { season: "晩秋 (10月)", keyword: "整理・防衛・次の準備", symbol: "土" },
+    "亥": { season: "初冬 (11月)", keyword: "蓄積・知恵・内面への集中", symbol: "水" }
+};
+
 const TSUCHENSEI_DETAILS = {
     "比肩": {
         keyword: "自立・自己確立・マイペース・決断",
-        desc: "自分自身の意志が強まり、独立心や個性が前面に出る時期です。自分の軸をしっかり持ち、新しい一歩を踏み出すのに最適です。"
+        desc: "自分自身の意志が強まり、独立心や個性が前面に出る時期です。自分の軸をしっかり持ち、新しい一歩を踏み出すのに最適です。",
+        plus: "自分の軸が定まり、独立や新しい挑戦に最高の後押しが得られます。",
+        caution: "頑固になりやすく、周囲との意地の張り合いに注意が必要です。"
     },
     "劫財": {
         keyword: "協業・野心・仲間・スケールの大きな目標",
-        desc: "仲間と共に大きな目標に向かって突き進む野心溢れる時期です。時にライバル意識も芽生えますが、コラボレーションで力を発揮します。"
+        desc: "仲間と共に大きな目標に向かって突き進む野心溢れる時期です。時にライバル意識も芽生えますが、コラボレーションで力を発揮します。",
+        plus: "周囲を巻き込んで大きな目標を達成する推進力が湧きます。",
+        caution: "強引な進め方や想定外の散財・出費に注意が必要です。"
     },
     "食神": {
         keyword: "自己表現・衣食住の充実・娯楽・自然体",
-        desc: "感性が豊かになり、生活を楽しんだり自身の才能を素直に表現できる幸運期です。リラックスした自然体の魅力が周囲を引きつけます。"
+        desc: "感性が豊かになり、生活を楽しんだり自身の才能を素直に表現できる幸運期です。リラックスした自然体の魅力が周囲を引きつけます。",
+        plus: "趣味や創作活動が愛され、プライベートが非常に充実します。",
+        caution: "楽な方へ流されやすく、緊張感の欠如や暴飲暴食に注意が必要です。"
     },
     "傷官": {
         keyword: "直感・美意識・専門技能・革新・デリケートな転換期",
-        desc: "感受性と集中力が研ぎ澄まされる時期です。専門技術の磨き上げやアート・表現活動に抜群の威力を発揮しますが、言葉の鋭さや精神的なデリケートさには注意が必要です。"
+        desc: "感受性と集中力が研ぎ澄まされる時期です。専門技術の磨き上げやアート・表現活動に抜群の威力を発揮しますが、言葉の鋭さや精神的なデリケートさには注意が必要です。",
+        plus: "鋭いアイデアや美意識、専門スキルの修得で卓越した成果が出ます。",
+        caution: "言葉の毒やイライラ、完璧主義による精神的疲労に注意が必要です。"
     },
     "偏財": {
         keyword: "流動的な財・ビジネス拡大・人脈・サービス精神",
-        desc: "人脈やチャンスが大きく広がるアクティブな好運期です。投資やビジネスの拡大など、エネルギーを循環させることで豊かな成果が得られます。"
+        desc: "人脈やチャンスが大きく広がるアクティブな好運期です。投資やビジネスの拡大など、エネルギーを循環させることで豊かな成果が得られます。",
+        plus: "ビジネスの拡大や社交の場でのチャンスが急増します。",
+        caution: "浪費や話を広げすぎることによる散漫さに注意が必要です。"
     },
     "正財": {
         keyword: "着実な蓄財・信用・不動産・誠実な成果",
-        desc: "コツコツ積み重ねてきた努力が形になる安定・定着の時期です。計画的な資金運用や、信頼関係の構築に最も向いています。"
+        desc: "コツコツ積み重ねてきた努力が形になる安定・定着の時期です。計画的な資金運用や、信頼関係の構築に最も向いています。",
+        plus: "地道な努力が正当に評価され、確実な資産・信用を築けます。",
+        caution: "変化を恐れすぎてチャンスを逃してしまうことに注意が必要です。"
     },
     "偏官": {
         keyword: "行動・変化・ブレイクスルー・多忙・勇気",
-        desc: "疾風怒濤の勢いで環境が激変したり、チャレンジが求められる時期です。強いプレッシャーを突破口として、一気に成長できます。"
+        desc: "疾風怒濤の勢いで環境が激変したり、チャレンジが求められる時期です。強いプレッシャーを突破口として、一気に成長できます。",
+        plus: "圧倒的な行動力と決断力で困難を突破できます。",
+        caution: "焦りによる怪我・過労や、力づくの衝突に注意が必要です。"
     },
     "正官": {
         keyword: "責任・昇進・社会的評価・枠組みの確立",
-        desc: "社会的な役割や責任が大きくなり、周囲からの信頼や評価が高まる時期です。規律を守り、組織や社会の中で確固たる立場を築けます。"
+        desc: "社会的な役割や責任が大きくなり、周囲からの信頼や評価が高まる時期です。規律を守り、組織や社会の中で確確たる立場を築けます。",
+        plus: "社会的地位の向上や資格取得、目上からの引き立てが得られます。",
+        caution: "形式や世間にとらわれすぎて柔軟性を失うことに注意が必要です。"
     },
     "偏印": {
         keyword: "知的好奇心・探究・自由・異業種・環境の変化",
-        desc: "これまでの常識にとらわれない柔軟なインスピレーションが湧く時期です。新しい学びや旅行、未知の分野への挑戦に最適です。"
+        desc: "これまでの常識にとらわれない柔軟なインスピレーションが湧く時期です。新しい学びや旅行、未知の分野への挑戦に最適です。",
+        plus: "ユニークな発想で新しい分野を開拓し、知的好奇心が満たされます。",
+        caution: "飽きっぽさや生活習慣の乱れ、迷いが生じやすい点に注意が必要です。"
     },
     "印綬": {
         keyword: "学習・資格・名誉・精神的成長・引き立て",
-        desc: "知識の吸収力や研究運が高まる時期です。目上の人からの支援を受けやすく、資格取得や本格的な学問・スキルの修得に恵まれます。"
+        desc: "知識の吸収力や研究運が高まる時期です。目上の人からの支援を受けやすく、資格取得や本格的な学問・スキルの修得に恵まれます。",
+        plus: "学問・研究・資格取得で名誉が得られ、深い知識が身につきます。",
+        caution: "頭でっかちになり、実際の行動力が鈍ってしまう点に注意が必要です。"
     }
 };
 
@@ -309,14 +356,12 @@ function getYearGanShi(targetYear) {
     return { gan: JUKKAN[ganIdx], nishi: JUNICHI[nishiIdx], name: JUKKAN[ganIdx] + JUNICHI[nishiIdx] };
 }
 
-// 修正：ユリウス日（JD）に基づく厳密な日干支算出ロジック
 function calculateDayPillar(dateObj) {
     const year = dateObj.getFullYear();
     const month = dateObj.getMonth() + 1;
     const day = dateObj.getDate();
     const hour = dateObj.getHours();
 
-    // 23時以降は翌日の日付（子刻の入り）として扱う四柱推命の標準処理
     let calcYear = year;
     let calcMonth = month;
     let calcDay = day;
@@ -337,7 +382,6 @@ function calculateDayPillar(dateObj) {
     const B = 2 - A + Math.floor(A / 4);
     const JD = Math.floor(365.25 * (calcYear + 4716)) + Math.floor(30.6001 * (calcMonth + 1)) + calcDay + B - 1524.5;
 
-    // ユリウス日 JD=0 は「癸丑(10, 2)」に相当するため、干支オフセットを適用
     const ganIdx = safeMod(Math.floor(JD + 0.5) + 9, 10);
     const nishiIdx = safeMod(Math.floor(JD + 0.5) + 1, 12);
 
@@ -484,7 +528,7 @@ function runAnalysis() {
     uniqueAspects.sort((a, b) => b.score - a.score);
 
     // 4. UI 描画
-    renderSummary(resultSummary = {
+    renderSummary({
         nikkan: dayPillar.gan,
         dayPillar: dayPillar.name,
         targetYear: targetYearVal,
@@ -499,7 +543,6 @@ function runAnalysis() {
 
 function renderSummary(s) {
     const ganDesc = GANSHI_DETAILS[s.yearGanShi[0]] || "";
-    const nishiDesc = GANSHI_DETAILS[s.yearGanShi[1]] || "";
 
     const div = document.getElementById('summarySection');
     div.innerHTML = `
@@ -530,15 +573,26 @@ function renderTimeline(aspects, currentTheme, isKuhou) {
     document.getElementById('eventCountBadge').innerText = `${aspects.length} REAL EVENTS`;
 
     if (aspects.length === 0) {
-        timelineDiv.innerHTML = `<div class="text-center py-12 text-slate-500 text-sm">指定の年に顕著なメジャーアスペクト（オーブ許容内）は見つかりませんでした。</div>`;
+        timelineDiv.innerHTML = `<div class="text-center py-12 text-slate-500 text-sm">指定の年に顕著なメジャーアスペクト（オーブ許容内）は見つかりませんでした。穏やかで安定した1年となります。</div>`;
         return;
     }
 
-    const tsInfo = TSUCHENSEI_DETAILS[currentTheme] || { keyword: "調整", desc: "全体的な運気の調和を図る時期です。" };
+    const tsInfo = TSUCHENSEI_DETAILS[currentTheme] || { 
+        keyword: "調整", 
+        desc: "全体的な運気の調和を図る時期です。",
+        plus: "現状を整理し着実に地盤を固めることができます。",
+        caution: "無理な拡張を避け、慎重に進めることが大切です。"
+    };
     const targetYearVal = parseInt(document.getElementById('targetYearInput').value, 10);
     const yearGanShi = getYearGanShi(targetYearVal);
-    const ganEnergy = GANSHI_DETAILS[yearGanShi.gan] || "";
-    const nishiPhase = GANSHI_DETAILS[yearGanShi.nishi] || "";
+    
+    // 干支の分解データ
+    const ganChar = yearGanShi.gan;
+    const nishiChar = yearGanShi.nishi;
+    const ganInfo = JUKKAN_EXPLAIN[ganChar] || { nature: "天の気", keyword: "エネルギー" };
+    const nishiInfo = JUNICHI_EXPLAIN[nishiChar] || { season: "季節の気", keyword: "フェーズ" };
+    const ganEnergy = GANSHI_DETAILS[ganChar] || "";
+    const nishiPhase = GANSHI_DETAILS[nishiChar] || "";
 
     let html = '';
     aspects.forEach(item => {
@@ -581,22 +635,43 @@ function renderTimeline(aspects, currentTheme, isKuhou) {
                     </div>
                 </div>
 
-                <div class="text-xs bg-gradient-to-r from-amber-950/40 to-purple-950/40 p-4 rounded-xl border border-amber-500/20 text-amber-100/90 leading-relaxed space-y-2.5">
-                    <div class="flex items-center justify-between border-b border-amber-500/20 pb-1.5">
+                <div class="text-xs bg-gradient-to-r from-amber-950/40 to-purple-950/40 p-4.5 rounded-xl border border-amber-500/20 text-amber-100/90 leading-relaxed space-y-3">
+                    <div class="flex items-center justify-between border-b border-amber-500/20 pb-2">
                         <div class="flex items-center gap-2 font-bold text-amber-300">
-                            <span>✦ 3位一体 統合解釈</span>
-                            <span class="bg-amber-500/20 text-amber-200 px-2 py-0.5 rounded text-[10px] border border-amber-500/30">東洋テーマ：${currentTheme} (${tsInfo.keyword})</span>
+                            <span>✦ 3位一体 統合解釈ガイド</span>
+                            <span class="bg-amber-500/20 text-amber-200 px-2 py-0.5 rounded text-[10px] border border-amber-500/30">年運：${currentTheme}</span>
                         </div>
                         <span class="text-[10px] text-amber-400/80 font-mono">流年干支: ${yearGanShi.name}</span>
                     </div>
 
-                    <p class="text-slate-300"><b class="text-amber-300">【流年干支の土台 (${yearGanShi.name})】</b>${yearGanShi.gan}の「${ganEnergy}」と、${yearGanShi.nishi}の「${nishiPhase}」が今年1年の背後に流れる基本背景です。</p>
+                    <!-- 流年干支の要素分解（初心者用ミニ解説） -->
+                    <div class="bg-slate-950/60 p-3 rounded-lg border border-amber-500/20 text-slate-300">
+                        <p class="mb-2"><b class="text-amber-300">【流年干支の土台 (${yearGanShi.name})】</b> ${ganChar}の「${ganEnergy}」と、${nishiChar}の「${nishiPhase}」が今年1年の背後に流れる基本背景です。</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-400 pt-1 border-t border-slate-800">
+                            <div>✦ <b>${ganChar} (十干)</b>: ${ganInfo.nature} (${ganInfo.keyword})</div>
+                            <div>✦ <b>${nishiChar} (十二支)</b>: ${nishiInfo.season} (${nishiInfo.keyword})</div>
+                        </div>
+                    </div>
 
-                    <p class="text-slate-200"><b class="text-amber-200/90">【年運通変星 (${currentTheme})】</b>${tsInfo.desc}</p>
+                    <!-- 通変星解説 & 強み・注意点 -->
+                    <div class="bg-slate-950/60 p-3 rounded-lg border border-indigo-500/20 text-slate-300">
+                        <p class="mb-2.5"><b class="text-amber-200">【年運通変星 (${currentTheme})】</b> ${tsInfo.desc}</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                            <div class="bg-emerald-950/40 border border-emerald-500/30 p-2 rounded text-emerald-200">
+                                <b class="block mb-0.5">【活かすべき強み】</b>
+                                ${tsInfo.plus}
+                            </div>
+                            <div class="bg-rose-950/40 border border-rose-500/30 p-2 rounded text-rose-200">
+                                <b class="block mb-0.5">【注意すべきリスク】</b>
+                                ${tsInfo.caution}
+                            </div>
+                        </div>
+                    </div>
 
-                    <p class="text-slate-300">${aspectEffectText}</p>
+                    <!-- 西洋アスペクト -->
+                    <p class="text-slate-300 pt-1">${aspectEffectText}</p>
 
-                    ${isKuhou ? '<p class="text-amber-400 text-[11px] pt-1">⚠️ <b>空亡補正:</b> 今年は空亡（リセット・内省の年）にあたるため、外側に急いで結果を求めるより、技術の研鑽や知識の蓄積など「内側の充実」に充てると大きな開運に繋がります。</p>' : ''}
+                    ${isKuhou ? '<p class="text-amber-400 text-[11px] pt-1 border-t border-amber-500/20">⚠️ <b>空亡補正:</b> 今年は空亡（リセット・内省の年）にあたるため、外側に急いで結果を求めるより、技術の研鑽や知識の蓄積など「内側の充実」に充てると大きな開運に繋がります。</p>' : ''}
                 </div>
             </div>
         `;
@@ -609,3 +684,5 @@ window.onload = function() {
     runAnalysis();
 };
 </script>
+</body>
+</html>
