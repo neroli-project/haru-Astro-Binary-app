@@ -33,13 +33,13 @@
             border: 1px solid rgba(217, 119, 6, 0.25);
         }
         /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0b0f19; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #334155; }
     </style>
 </head>
-<body class="bg-gradient-to-b from-slate-950 via-purple-950 to-indigo-950 min-h-screen text-slate-200 p-4 md:p-8">
+<body class="bg-gradient-to-b from-slate-950 via-purple-950 to-indigo-950 min-h-screen text-slate-200 p-2 sm:p-4 md:p-8">
 
     <!-- カスタムモーダル（alert代替） -->
     <div id="customModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 transition-opacity">
@@ -51,42 +51,42 @@
         </div>
     </div>
 
-    <div class="max-w-5xl mx-auto cosmic-card rounded-3xl shadow-2xl overflow-hidden border gold-border relative">
+    <div class="max-w-5xl mx-auto cosmic-card rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border gold-border relative">
         <!-- 背景の装飾星空演出 -->
         <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/10 via-transparent to-transparent pointer-events-none"></div>
 
         <!-- ヘッダー -->
-        <div class="relative p-6 md:p-10 border-b gold-border text-center bg-slate-950/40">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-cinzel mb-3 tracking-widest">
+        <div class="relative p-5 sm:p-6 md:p-10 border-b gold-border text-center bg-slate-950/40">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] sm:text-xs font-cinzel mb-3 tracking-widest">
                 <span>✦ HYBRID ASTROLOGY ENGINE ✦</span>
             </div>
-            <h1 class="text-3xl md:text-4xl font-bold gold-gradient-text tracking-wider mb-2">東洋・西洋 統合天命演算</h1>
-            <p class="text-slate-400 text-xs md:text-sm max-w-2xl mx-auto leading-relaxed">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold gold-gradient-text tracking-wider mb-2">東洋・西洋 統合天命演算</h1>
+            <p class="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed">
                 四柱推命の「日干・通変星・空亡」のエネルギー潮流と、天体力学に基づく高精度な「トランジット・アスペクト」をハイブリッド解析し、真の好機と転換期を導き出します。
             </p>
         </div>
 
         <!-- 入力コントロールパネル -->
-        <div class="p-6 md:p-8 bg-slate-900/60 border-b gold-border grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+        <div class="p-4 sm:p-6 md:p-8 bg-slate-900/60 border-b gold-border grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 relative z-10">
             <div>
-                <label class="block text-xs font-semibold text-amber-200/80 mb-2 uppercase tracking-wider">生年月日（ネイタル算出）</label>
-                <input type="date" id="birthDateInput" value="1995-03-15" class="w-full rounded-xl bg-slate-950/80 border border-amber-500/30 p-3 text-sm text-slate-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition">
+                <label class="block text-xs font-semibold text-amber-200/80 mb-1.5 uppercase tracking-wider">生年月日（ネイタル算出）</label>
+                <input type="date" id="birthDateInput" value="1995-03-15" class="w-full rounded-xl bg-slate-950/80 border border-amber-500/30 p-2.5 sm:p-3 text-sm text-slate-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition">
             </div>
             <div>
-                <label class="block text-xs font-semibold text-amber-200/80 mb-2 uppercase tracking-wider">出生時間</label>
+                <label class="block text-xs font-semibold text-amber-200/80 mb-1.5 uppercase tracking-wider">出生時間</label>
                 <div class="flex items-center gap-2">
-                    <input type="time" id="birthTimeInput" value="12:00" class="flex-1 rounded-xl bg-slate-950/80 border border-amber-500/30 p-3 text-sm text-slate-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition">
-                    <label class="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-950/60 px-3 py-3 rounded-xl border border-amber-500/20 cursor-pointer select-none">
+                    <input type="time" id="birthTimeInput" value="12:00" class="flex-1 rounded-xl bg-slate-950/80 border border-amber-500/30 p-2.5 sm:p-3 text-sm text-slate-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition">
+                    <label class="flex items-center gap-1 text-xs text-slate-400 bg-slate-950/60 px-2.5 py-2.5 sm:px-3 sm:py-3 rounded-xl border border-amber-500/20 cursor-pointer select-none whitespace-nowrap">
                         <input type="checkbox" id="unknownTimeCheck" onchange="toggleTimeInput()" class="rounded text-amber-500 focus:ring-0 bg-slate-900 border-amber-500/40">
                         <span>時間不明</span>
                     </label>
                 </div>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-amber-200/80 mb-2 uppercase tracking-wider">予測対象年（トランジット年）</label>
-                <div class="flex gap-3">
-                    <input type="number" id="targetYearInput" value="2026" min="1900" max="2100" class="w-full rounded-xl bg-slate-950/80 border border-amber-500/30 p-3 text-sm text-slate-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition">
-                    <button onclick="runAnalysis()" class="whitespace-nowrap bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-slate-950 font-bold px-6 py-3 rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2 font-cinzel">
+                <label class="block text-xs font-semibold text-amber-200/80 mb-1.5 uppercase tracking-wider">予測対象年（トランジット年）</label>
+                <div class="flex gap-2 sm:gap-3">
+                    <input type="number" id="targetYearInput" value="2026" min="1900" max="2100" class="w-full rounded-xl bg-slate-950/80 border border-amber-500/30 p-2.5 sm:p-3 text-sm text-slate-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition">
+                    <button onclick="runAnalysis()" class="whitespace-nowrap bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-slate-950 font-bold px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl shadow-lg transition text-xs sm:text-sm flex items-center justify-center gap-1.5 font-cinzel">
                         <span>ANALYZE</span>
                     </button>
                 </div>
@@ -96,50 +96,50 @@
         <!-- ネイタル天体度数手動調整（アコーディオン） -->
         <div class="border-b gold-border bg-slate-950/40">
             <details class="group">
-                <summary class="flex justify-between items-center p-4 cursor-pointer text-xs font-semibold text-amber-300/80 hover:text-amber-200 transition">
+                <summary class="flex justify-between items-center p-3.5 sm:p-4 cursor-pointer text-xs font-semibold text-amber-300/80 hover:text-amber-200 transition">
                     <span>✦ ネイタル天体・計算度数の確認・微調整 (手動オーバードライブ)</span>
                     <span class="group-open:rotate-180 transition-transform">▼</span>
                 </summary>
-                <div class="p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 bg-slate-900/40 text-xs">
+                <div class="p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 bg-slate-900/40 text-xs">
                     <div>
-                        <label class="block text-slate-400 mb-1">☉ 太陽 黄経(度)</label>
-                        <input type="number" step="0.01" id="natalSunDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-2 text-amber-200 font-mono">
+                        <label class="block text-slate-400 mb-1 text-[11px]">☉ 太陽 黄経(度)</label>
+                        <input type="number" step="0.01" id="natalSunDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-1.5 sm:p-2 text-amber-200 font-mono">
                     </div>
                     <div>
-                        <label class="block text-slate-400 mb-1">☽ 月 黄経(度)</label>
-                        <input type="number" step="0.01" id="natalMoonDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-2 text-amber-200 font-mono">
+                        <label class="block text-slate-400 mb-1 text-[11px]">☽ 月 黄経(度)</label>
+                        <input type="number" step="0.01" id="natalMoonDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-1.5 sm:p-2 text-amber-200 font-mono">
                     </div>
                     <div>
-                        <label class="block text-slate-400 mb-1">☿ 水星 黄経(度)</label>
-                        <input type="number" step="0.01" id="natalMercuryDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-2 text-amber-200 font-mono">
+                        <label class="block text-slate-400 mb-1 text-[11px]">☿ 水星 黄経(度)</label>
+                        <input type="number" step="0.01" id="natalMercuryDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-1.5 sm:p-2 text-amber-200 font-mono">
                     </div>
                     <div>
-                        <label class="block text-slate-400 mb-1">♀ 金星 黄経(度)</label>
-                        <input type="number" step="0.01" id="natalVenusDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-2 text-amber-200 font-mono">
+                        <label class="block text-slate-400 mb-1 text-[11px]">♀ 金星 黄経(度)</label>
+                        <input type="number" step="0.01" id="natalVenusDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-1.5 sm:p-2 text-amber-200 font-mono">
                     </div>
                     <div>
-                        <label class="block text-slate-400 mb-1">♂ 火星 黄経(度)</label>
-                        <input type="number" step="0.01" id="natalMarsDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-2 text-amber-200 font-mono">
+                        <label class="block text-slate-400 mb-1 text-[11px]">♂ 火星 黄経(度)</label>
+                        <input type="number" step="0.01" id="natalMarsDeg" class="w-full bg-slate-950 border border-amber-500/20 rounded p-1.5 sm:p-2 text-amber-200 font-mono">
                     </div>
                 </div>
             </details>
         </div>
 
         <!-- 解析結果サマリー -->
-        <div id="summarySection" class="p-6 md:p-8 bg-slate-950/60 border-b gold-border grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div id="summarySection" class="p-4 sm:p-6 md:p-8 bg-slate-950/60 border-b gold-border grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <!-- Dynamic Content -->
         </div>
 
         <!-- タイムライン表示エリア -->
-        <div class="p-6 md:p-10">
-            <div class="flex items-center justify-between mb-8 border-b gold-border pb-4">
-                <div class="flex items-center gap-3">
-                    <span class="text-amber-400 text-xl">✦</span>
-                    <h3 class="text-lg font-bold text-amber-100 tracking-wider">計算に基づくリアル・アスペクトタイムライン</h3>
+        <div class="p-4 sm:p-6 md:p-10">
+            <div class="flex items-center justify-between mb-6 sm:mb-8 border-b gold-border pb-3 sm:pb-4">
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <span class="text-amber-400 text-lg sm:text-xl">✦</span>
+                    <h3 class="text-base sm:text-lg font-bold text-amber-100 tracking-wider">計算に基づくリアル・アスペクトタイムライン</h3>
                 </div>
-                <span class="text-xs font-cinzel bg-amber-500/10 border border-amber-500/30 text-amber-300 px-3 py-1 rounded-full" id="eventCountBadge">0 EVENTS</span>
+                <span class="text-[10px] sm:text-xs font-cinzel bg-amber-500/10 border border-amber-500/30 text-amber-300 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full" id="eventCountBadge">0 EVENTS</span>
             </div>
-            <div id="timelineOutput" class="space-y-6">
+            <div id="timelineOutput" class="space-y-4 sm:space-y-6">
                 <!-- 動的描画 -->
             </div>
         </div>
@@ -292,7 +292,7 @@ const TSUCHENSEI_DETAILS = {
     },
     "正官": {
         keyword: "責任・昇進・社会的評価・枠組みの確立",
-        desc: "社会的な役割や責任が大きくなり、周囲からの信頼や評価が高まる時期です。規律を守り、組織や社会の中で確確たる立場を築けます。",
+        desc: "社会的な役割や責任が大きくなり、周囲からの信頼や評価が高まる時期です。規律を守り、組織や社会の中で確固たる立場を築けます。",
         plus: "社会的地位の向上や資格取得、目上からの引き立てが得られます。",
         caution: "形式や世間にとらわれすぎて柔軟性を失うことに注意が必要です。"
     },
@@ -546,22 +546,22 @@ function renderSummary(s) {
 
     const div = document.getElementById('summarySection');
     div.innerHTML = `
-        <div class="cosmic-card p-4 rounded-2xl gold-border">
-            <span class="text-xs text-amber-300/70 block font-medium">日干（宿命の本質）</span>
-            <span class="text-2xl font-bold gold-gradient-text">${s.nikkan} <span class="text-xs text-slate-300">(${s.dayPillar})</span></span>
+        <div class="cosmic-card p-3.5 sm:p-4 rounded-2xl gold-border">
+            <span class="text-[11px] sm:text-xs text-amber-300/70 block font-medium">日干（宿命の本質）</span>
+            <span class="text-xl sm:text-2xl font-bold gold-gradient-text">${s.nikkan} <span class="text-xs text-slate-300">(${s.dayPillar})</span></span>
         </div>
-        <div class="cosmic-card p-4 rounded-2xl gold-border">
-            <span class="text-xs text-amber-300/70 block font-medium">${s.targetYear}年 東洋年運テーマ</span>
-            <span class="text-2xl font-bold text-amber-200">${s.currentTheme}</span>
+        <div class="cosmic-card p-3.5 sm:p-4 rounded-2xl gold-border">
+            <span class="text-[11px] sm:text-xs text-amber-300/70 block font-medium">${s.targetYear}年 東洋年運テーマ</span>
+            <span class="text-xl sm:text-2xl font-bold text-amber-200">${s.currentTheme}</span>
         </div>
-        <div class="cosmic-card p-4 rounded-2xl gold-border">
-            <span class="text-xs text-amber-300/70 block font-medium">流年干支（${s.targetYear}年）</span>
-            <span class="text-2xl font-bold text-slate-200">${s.yearGanShi}</span>
-            <span class="text-[10px] text-amber-300/80 block mt-1 leading-tight">${ganDesc}</span>
+        <div class="cosmic-card p-3.5 sm:p-4 rounded-2xl gold-border">
+            <span class="text-[11px] sm:text-xs text-amber-300/70 block font-medium">流年干支（${s.targetYear}年）</span>
+            <span class="text-xl sm:text-2xl font-bold text-slate-200">${s.yearGanShi}</span>
+            <span class="text-[10px] text-amber-300/80 block mt-0.5 leading-tight">${ganDesc}</span>
         </div>
-        <div class="cosmic-card p-4 rounded-2xl gold-border">
-            <span class="text-xs text-amber-300/70 block font-medium">空亡（天悪運気）</span>
-            <span class="text-lg font-bold ${s.isKuhou ? 'text-amber-500' : 'text-emerald-400'}">
+        <div class="cosmic-card p-3.5 sm:p-4 rounded-2xl gold-border">
+            <span class="text-[11px] sm:text-xs text-amber-300/70 block font-medium">空亡（天悪運気）</span>
+            <span class="text-base sm:text-lg font-bold ${s.isKuhou ? 'text-amber-500' : 'text-emerald-400'}">
                 ${s.isKuhou ? '⚠️ 空亡期 (' + s.kuhouBranches + ')' : '✨ 正常展開'}
             </span>
         </div>
@@ -610,44 +610,49 @@ function renderTimeline(aspects, currentTheme, isKuhou) {
         }
 
         html += `
-            <div class="cosmic-card p-6 rounded-2xl gold-border hover:gold-border-glow transition relative overflow-hidden">
-                <div class="flex flex-wrap items-center justify-between gap-3 mb-3 border-b border-amber-500/10 pb-3">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs font-cinzel px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">SCORE: ${item.score.toFixed(1)}</span>
-                        <span class="font-bold text-amber-100 font-cinzel text-sm">✦ ${item.date} 前後</span>
+            <div class="cosmic-card p-4 sm:p-6 rounded-2xl gold-border hover:gold-border-glow transition relative overflow-hidden">
+                <!-- イベントヘッダー -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3 border-b border-amber-500/10 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-[10px] font-cinzel px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">SCORE: ${item.score.toFixed(1)}</span>
+                        <span class="font-bold text-amber-100 font-cinzel text-xs sm:text-sm">✦ ${item.date} 前後</span>
                     </div>
-                    <div class="text-xs font-mono text-amber-300/90 bg-slate-950/80 px-3 py-1.5 rounded-lg border border-amber-500/20">
-                        t.${tName} × n.${nName} <span class="text-amber-400 font-bold">${item.aspect.symbol} ${item.aspect.ja}</span>
+                    <div class="text-xs font-mono text-amber-300/90 bg-slate-950/80 px-2.5 py-1.5 rounded-lg border border-amber-500/20 self-start sm:self-auto leading-snug">
+                        t.${tName} × n.${nName} <span class="text-amber-400 font-bold ml-1">${item.aspect.symbol} ${item.aspect.ja}</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-300 mb-4 bg-slate-950/40 p-3 rounded-xl border border-slate-800">
-                    <div>
-                        <span class="text-slate-500 block">トランジット:</span>
-                        <span class="text-slate-200 font-mono">${tName}: ${formatZodiacDegree(item.tDeg)}</span>
+                <!-- 天体度数データ列（スマホ完全対応版） -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs text-slate-300 mb-3 sm:mb-4 bg-slate-950/40 p-3 rounded-xl border border-slate-800">
+                    <div class="flex sm:block items-center justify-between">
+                        <span class="text-slate-500 sm:block">トランジット:</span>
+                        <span class="text-slate-200 font-mono break-all">${tName}: ${formatZodiacDegree(item.tDeg)}</span>
                     </div>
-                    <div>
-                        <span class="text-slate-500 block">ネイタル:</span>
-                        <span class="text-slate-200 font-mono">${nName}: ${formatZodiacDegree(item.nDeg)}</span>
+                    <div class="flex sm:block items-center justify-between">
+                        <span class="text-slate-500 sm:block">ネイタル:</span>
+                        <span class="text-slate-200 font-mono break-all">${nName}: ${formatZodiacDegree(item.nDeg)}</span>
                     </div>
-                    <div class="col-span-2 text-amber-300/80 font-mono">
+                    <div class="sm:col-span-2 text-amber-300/80 font-mono text-[11px] sm:text-xs pt-1 sm:pt-0 border-t sm:border-0 border-slate-800/80">
                         オーブ（誤差）: ${item.orb}° <span class="text-slate-500">(離隔角: ${item.diff}°)</span>
                     </div>
                 </div>
 
-                <div class="text-xs bg-gradient-to-r from-amber-950/40 to-purple-950/40 p-4.5 rounded-xl border border-amber-500/20 text-amber-100/90 leading-relaxed space-y-3">
-                    <div class="flex items-center justify-between border-b border-amber-500/20 pb-2">
-                        <div class="flex items-center gap-2 font-bold text-amber-300">
+                <!-- 解説コンテンツ -->
+                <div class="text-xs bg-gradient-to-r from-amber-950/40 to-purple-950/40 p-3.5 sm:p-4.5 rounded-xl border border-amber-500/20 text-amber-100/90 leading-relaxed space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-500/20 pb-2">
+                        <div class="flex items-center gap-2 font-bold text-amber-300 text-xs sm:text-sm">
                             <span>✦ 3位一体 統合解釈ガイド</span>
-                            <span class="bg-amber-500/20 text-amber-200 px-2 py-0.5 rounded text-[10px] border border-amber-500/30">年運：${currentTheme}</span>
                         </div>
-                        <span class="text-[10px] text-amber-400/80 font-mono">流年干支: ${yearGanShi.name}</span>
+                        <div class="flex items-center gap-1.5 self-start sm:self-auto">
+                            <span class="bg-amber-500/20 text-amber-200 px-2 py-0.5 rounded text-[10px] border border-amber-500/30">年運：${currentTheme}</span>
+                            <span class="text-[10px] text-amber-400/80 font-mono bg-slate-900/60 px-2 py-0.5 rounded border border-amber-500/10">流年干支: ${yearGanShi.name}</span>
+                        </div>
                     </div>
 
                     <!-- 流年干支の要素分解（初心者用ミニ解説） -->
                     <div class="bg-slate-950/60 p-3 rounded-lg border border-amber-500/20 text-slate-300">
                         <p class="mb-2"><b class="text-amber-300">【流年干支の土台 (${yearGanShi.name})】</b> ${ganChar}の「${ganEnergy}」と、${nishiChar}の「${nishiPhase}」が今年1年の背後に流れる基本背景です。</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-400 pt-1 border-t border-slate-800">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 text-[11px] text-slate-400 pt-2 border-t border-slate-800">
                             <div>✦ <b>${ganChar} (十干)</b>: ${ganInfo.nature} (${ganInfo.keyword})</div>
                             <div>✦ <b>${nishiChar} (十二支)</b>: ${nishiInfo.season} (${nishiInfo.keyword})</div>
                         </div>
@@ -669,7 +674,7 @@ function renderTimeline(aspects, currentTheme, isKuhou) {
                     </div>
 
                     <!-- 西洋アスペクト -->
-                    <p class="text-slate-300 pt-1">${aspectEffectText}</p>
+                    <p class="text-slate-300 pt-0.5">${aspectEffectText}</p>
 
                     ${isKuhou ? '<p class="text-amber-400 text-[11px] pt-1 border-t border-amber-500/20">⚠️ <b>空亡補正:</b> 今年は空亡（リセット・内省の年）にあたるため、外側に急いで結果を求めるより、技術の研鑽や知識の蓄積など「内側の充実」に充てると大きな開運に繋がります。</p>' : ''}
                 </div>
