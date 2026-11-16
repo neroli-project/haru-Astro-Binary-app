@@ -856,11 +856,11 @@ function checkKuhou(dayGan, dayNishi, targetYearNishi) {
    アスペクト判定・定義
    ================================================---------- */
 const ASPECTS_DEF = [
-    { name: "Conjunction", symbol: "☌", angle: 0, orb: 8, ja: "コンジャンクション (0°/合)", type: "neutral" },
-    { name: "Sextile", symbol: "⚹", angle: 60, orb: 6, ja: "セクスタイル (60°/協力・調和)", type: "harmonious" },
-    { name: "Square", symbol: "□", angle: 90, orb: 7, ja: "スクエア (90°/葛藤・刺激)", type: "challenging" },
-    { name: "Trine", symbol: "△", angle: 120, orb: 8, ja: "トライン (120°/大調和・追い風)", type: "harmonious" },
-    { name: "Opposition", symbol: "☍", angle: 180, orb: 8, ja: "オポジション (180°/対立・緊張)", type: "challenging" }
+    { name: "Conjunction", symbol: "☌", angle: 0, orb: 2, ja: "コンジャンクション (0°/合)", type: "neutral" },
+    { name: "Sextile", symbol: "⚹", angle: 60, orb: 2, ja: "セクスタイル (60°/協力・調和)", type: "harmonious" },
+    { name: "Square", symbol: "□", angle: 90, orb: 2, ja: "スクエア (90°/葛藤・刺激)", type: "challenging" },
+    { name: "Trine", symbol: "△", angle: 120, orb: 2, ja: "トライン (120°/大調和・追い風)", type: "harmonious" },
+    { name: "Opposition", symbol: "☍", angle: 180, orb: 2, ja: "オポジション (180°/対立・緊張)", type: "challenging" }
 ];
 
 const PLANET_NAMES_JA = {
@@ -1007,14 +1007,13 @@ function runAnalysis() {
     const currentTheme = nikkanMap[yearGanShi.gan] || "比肩";
     const kuhouInfo = checkKuhou(dayPillar.gan, dayPillar.nishi, yearGanShi.nishi);
 
-    // 3. 対象年のトランジット天体リアル演算
+// 3. 対象年のトランジット天体リアル演算
     const transitPlanets = ["Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
     const natalPlanets = ["Sun", "Moon", "Mercury", "Venus", "Mars"];
-    const detectedAspects = [];
+    const rawEvents = []; // 毎月のヒットをいったんここに全保存
 
     for (let month = 0; month < 12; month++) {
         const checkDate = new Date(Date.UTC(targetYearVal, month, 15, 12, 0, 0));
-        const dateStr = `${targetYearVal}-${String(month + 1).padStart(2, '0')}-15`;
 
         transitPlanets.forEach(tPlanet => {
             const tDeg = getBodyLongitude(tPlanet, checkDate);
@@ -1027,15 +1026,16 @@ function runAnalysis() {
                 ASPECTS_DEF.forEach(asp => {
                     const orb = Math.abs(diff - asp.angle);
                     if (orb <= asp.orb) {
-                        detectedAspects.push({
-                            date: dateStr,
+                        rawEvents.push({
+                            monthNum: month, // 0〜11月
+                            dateStr: `${targetYearVal}-${String(month + 1).padStart(2, '0')}-15`,
                             tPlanet,
                             tDeg,
                             nPlanet,
                             nDeg,
                             aspect: asp,
-                            orb: orb.toFixed(2),
-                            diff: diff.toFixed(2)
+                            orb: parseFloat(orb.toFixed(2)),
+                            diff: parseFloat(diff.toFixed(2))
                         });
                     }
                 });
@@ -1043,26 +1043,72 @@ function runAnalysis() {
         });
     }
 
-    // 重複除去
-    const uniqueAspects = [];
-    const aspectKeys = new Set();
-    detectedAspects.sort((a, b) => parseFloat(a.orb) - parseFloat(b.orb));
-
-    detectedAspects.forEach(item => {
-        const key = `${item.tPlanet}-${item.nPlanet}-${item.aspect.name}`;
-        if (!aspectKeys.has(key)) {
-            aspectKeys.add(key);
-            uniqueAspects.push(item);
+    // ★ 4. 同じアスペクトの連続を「〇月頃〜〇月頃」の期間にまとめる処理
+    const groupMap = {};
+    rawEvents.forEach(ev => {
+        const groupKey = `${ev.tPlanet}-${ev.nPlanet}-${ev.aspect.name}`;
+        if (!groupMap[groupKey]) {
+            groupMap[groupKey] = [];
         }
+        groupMap[groupKey].push(ev);
     });
 
-    // スコアリング
-    uniqueAspects.forEach(item => {
-        let score = (10 - parseFloat(item.orb)) * 1.5;
-        if (kuhouInfo.isKuhouYear) score *= 0.85;
-        item.score = score;
+    const mergedAspects = [];
+
+    Object.keys(groupMap).forEach(groupKey => {
+        const groupItems = groupMap[groupKey];
+        // 月の早い順に並べ替え
+        groupItems.sort((a, b) => a.monthNum - b.monthNum);
+
+        const months = groupItems.map(e => e.monthNum);
+        const ranges = [];
+        let start = months[0];
+        let prev = months[0];
+
+        for (let i = 1; i < months.length; i++) {
+            if (months[i] <= prev + 2) { // 2ヶ月程度の空きなら同じ期間とみなす
+                prev = months[i];
+            } else {
+                ranges.push({ start, end: prev });
+                start = months[i];
+                prev = months[i];
+            }
+        }
+        ranges.push({ start, end: prev });
+
+        ranges.forEach(range => {
+            // その期間の中で一番オーブ（誤差）が小さい代表データを選ぶ
+            const subItems = groupItems.filter(e => e.monthNum >= range.start && e.monthNum <= range.end);
+            subItems.sort((a, b) => a.orb - b.orb);
+            const best = subItems[0];
+
+            // 表示用の期間ラベルを作成
+            let periodLabel = `${range.start + 1}月頃`;
+            if (range.end > range.start) {
+                periodLabel = `${range.start + 1}月頃〜${range.end + 1}月頃`;
+            }
+
+            // スコア計算（一番タイトなオーブを基準にする）
+            let score = (10 - best.orb) * 1.5;
+            if (kuhouInfo.isKuhouYear) score *= 0.85;
+
+            mergedAspects.push({
+                date: periodLabel, // ここに「1月頃〜3月頃」のような期間が入る
+                tPlanet: best.tPlanet,
+                tDeg: best.tDeg,
+                nPlanet: best.nPlanet,
+                nDeg: best.nDeg,
+                aspect: best.aspect,
+                orb: best.orb.toFixed(2),
+                diff: best.diff.toFixed(2),
+                sortMonth: range.start, // 並び替え用
+                score: score
+            });
+        });
     });
-    uniqueAspects.sort((a, b) => b.score - a.score);
+
+    // 発生月順（時系列）にソート
+    mergedAspects.sort((a, b) => a.sortMonth - b.sortMonth);
 
     // 4. UI 描画
     renderSummary({
@@ -1077,7 +1123,7 @@ function runAnalysis() {
 
     renderNatalPlanets(calculatedNatalDegrees);
     renderEasternYearGuide(targetYearVal, yearGanShi, currentTheme, kuhouInfo.isKuhouYear);
-    renderTimeline(uniqueAspects, currentTheme);
+    renderTimeline(mergedAspects, currentTheme);
 }
 
 /* ネイタル主要天体＋ノード一覧の描画 */
